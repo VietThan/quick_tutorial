@@ -75,7 +75,3 @@ class TestFunctional():
     def test_hello_functional(self):
         res = self.testapp.get('/howdy', status=200)
         assert b'<h1>Hi Hello View' in res.body
-
-    def test_css(self):
-        res = self.testapp.get('/static/app.css', status=200)
-        assert b'body' in res.body
