@@ -1,71 +1,63 @@
 # import unittest
-
+# 
 # from pyramid import testing
-
-
+# 
+# 
 # class TutorialViewTests(unittest.TestCase):
 #     def setUp(self):
 #         self.config = testing.setUp()
-
+# 
 #     def tearDown(self):
 #         testing.tearDown()
-
+# 
 #     def test_home(self):
-#         from .views import TutorialViews
-
+#         from .views import home
+# 
 #         request = testing.DummyRequest()
-#         inst = TutorialViews(request)
-#         response = inst.home()
+#         response = home(request)
+#         # Our view now returns data
 #         self.assertEqual('Home View', response['name'])
-
+# 
 #     def test_hello(self):
-#         from .views import TutorialViews
-
+#         from .views import hello
+# 
 #         request = testing.DummyRequest()
-#         inst = TutorialViews(request)
-#         response = inst.hello()
+#         response = hello(request)
+#         # Our view now returns data
 #         self.assertEqual('Hello View', response['name'])
-
-
+# 
+# 
 # class TutorialFunctionalTests(unittest.TestCase):
 #     def setUp(self):
 #         from tutorial import main
 #         app = main({})
 #         from webtest import TestApp
-
+# 
 #         self.testapp = TestApp(app)
-
+# 
 #     def test_home(self):
 #         res = self.testapp.get('/', status=200)
 #         self.assertIn(b'<h1>Hi Home View', res.body)
-
+# 
 #     def test_hello(self):
 #         res = self.testapp.get('/howdy', status=200)
 #         self.assertIn(b'<h1>Hi Hello View', res.body)
 
-#     def test_hello_json(self):
-#         res = self.testapp.get('/howdy.json', status=200)
-#         self.assertIn(b'{"name": "Hello View"}', res.body)
-#         self.assertEqual(res.content_type, 'application/json')
-
 from pyramid import testing
 
-class TestTutorial():
-    def test_home(self):
-        from .views import TutorialViews
+def test_home():
+    from .views import home
 
-        request = testing.DummyRequest()
-        inst = TutorialViews(request)
-        response = inst.home()
-        assert 'Home View' == response['name']
+    request = testing.DummyRequest()
+    response = home(request)
+    assert 'Home View' == response['name']
 
-    def test_hello(self):
-        from .views import TutorialViews
+def test_hello():
+    from .views import hello
 
-        request = testing.DummyRequest()
-        inst = TutorialViews(request)
-        response = inst.hello()
-        assert 'Hello View' == response['name']
+    request = testing.DummyRequest()
+    response = hello(request)
+    assert 'Hello View' == response['name']
 
 
 class TestFunctional():
@@ -81,8 +73,3 @@ class TestFunctional():
     def test_hello_functional(self):
         res = self.testapp.get('/howdy', status=200)
         assert b'<h1>Hi Hello View' in res.body
-
-    def test_hello_json(self):
-        res = self.testapp.get('/howdy.json', status=200)
-        assert b'{"name": "Hello View"}' in res.body
-        assert res.content_type == 'application/json'
