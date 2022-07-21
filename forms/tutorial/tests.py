@@ -11,55 +11,71 @@
 #         testing.tearDown()
 
 #     def test_home(self):
-#         from .views import TutorialViews
+#         from .views import WikiViews
 
 #         request = testing.DummyRequest()
-#         inst = TutorialViews(request)
-#         response = inst.home()
-#         self.assertEqual('Home View', response['name'])
-
-#     def test_hello(self):
-#         from .views import TutorialViews
-
-#         request = testing.DummyRequest()
-#         inst = TutorialViews(request)
-#         response = inst.hello()
-#         self.assertEqual('Hello View', response['name'])
+#         inst = WikiViews(request)
+#         response = inst.wiki_view()
+#         self.assertEqual(len(response['pages']), 3)
 
 
 # class TutorialFunctionalTests(unittest.TestCase):
 #     def setUp(self):
 #         from tutorial import main
+
 #         app = main({})
 #         from webtest import TestApp
 
 #         self.testapp = TestApp(app)
 
+#     def tearDown(self):
+#         testing.tearDown()
+
 #     def test_home(self):
 #         res = self.testapp.get('/', status=200)
-#         self.assertIn(b'<h1>Hi Home View', res.body)
+#         self.assertIn(b'<title>Wiki: View</title>', res.body)
 
-#     def test_hello(self):
-#         res = self.testapp.get('/howdy', status=200)
-#         self.assertIn(b'<h1>Hi Hello View', res.body)
+#     def test_add_page(self):
+#         res = self.testapp.get('/add', status=200)
+#         self.assertIn(b'<h1>Wiki</h1>', res.body)
+
+#     def test_edit_page(self):
+#         res = self.testapp.get('/101/edit', status=200)
+#         self.assertIn(b'<h1>Wiki</h1>', res.body)
+
+#     def test_post_wiki(self):
+#         self.testapp.post('/add', {
+#             "title": "New Title",
+#             "body": "<p>New Body</p>",
+#             "submit": "submit"
+#         }, status=302)
+
+#         res = self.testapp.get('/103', status=200)
+#         self.assertIn(b'<h1>New Title</h1>', res.body)
+#         self.assertIn(b'<p>New Body</p>', res.body)
+
+#     def test_edit_wiki(self):
+#         self.testapp.post('/102/edit', {
+#             "title": "New Title",
+#             "body": "<p>New Body</p>",
+#             "submit": "submit"
+#         }, status=302)
+
+#         res = self.testapp.get('/102', status=200)
+#         self.assertIn(b'<h1>New Title</h1>', res.body)
+#         self.assertIn(b'<p>New Body</p>', res.body)
 
 from pyramid import testing
 
-def test_home():
-    from .views import TutorialViews
 
-    request = testing.DummyRequest()
-    inst = TutorialViews(request)
-    response = inst.home()
-    assert 'Home View' == response['name']
+class TestTutorial():
+    def test_home(self):
+        from .views import WikiViews
 
-def test_hello():
-    from .views import TutorialViews
-
-    request = testing.DummyRequest()
-    inst = TutorialViews(request)
-    response = inst.hello()
-    assert 'Hello View' == response['name']
+        request = testing.DummyRequest()
+        inst = WikiViews(request)
+        response = inst.wiki_view()
+        assert len(response['pages']) == 3
 
 
 class TestFunctional():
@@ -68,10 +84,36 @@ class TestFunctional():
     from webtest import TestApp
     testapp = TestApp(app)
 
-    def test_home_functional(self):
+    def test_home(self):
         res = self.testapp.get('/', status=200)
-        assert b'<h1>Hi Home View' in res.body
+        assert b'<title>Wiki: View</title>' in res.body
 
-    def test_hello_functional(self):
-        res = self.testapp.get('/howdy', status=200)
-        assert b'<h1>Hi Hello View' in res.body
+    def test_add_page(self):
+        res = self.testapp.get('/add', status=200)
+        assert b'<h1>Wiki</h1>' in res.body
+
+    def test_edit_page(self):
+        res = self.testapp.get('/101/edit', status=200)
+        assert b'<h1>Wiki</h1>' in res.body
+
+    def test_post_wiki(self):
+        self.testapp.post('/add', {
+            "title": "New Title",
+            "body": "<p>New Body</p>",
+            "submit": "submit"
+        }, status=302)
+
+        res = self.testapp.get('/103', status=200)
+        assert b'<h1>New Title</h1>' in res.body
+        assert b'<p>New Body</p>'in res.body
+
+    def test_edit_wiki(self):
+        self.testapp.post('/102/edit', {
+            "title": "New Title",
+            "body": "<p>New Body</p>",
+            "submit": "submit"
+        }, status=302)
+
+        res = self.testapp.get('/102', status=200)
+        assert b'<h1>New Title</h1>' in res.body
+        assert b'<p>New Body</p>' in res.body
