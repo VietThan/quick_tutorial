@@ -4,14 +4,9 @@ from setuptools import setup
 # List of dependencies installed via `pip install -e .`
 # by virtue of the Setuptools `install_requires` value below.
 requires = [
-    'deform',
-    'psycopg2',
     'pyramid',
     'pyramid_chameleon',
-    'pyramid_tm',
-    'sqlalchemy',
     'waitress',
-    'zope.sqlalchemy',
 ]
 
 # List of dependencies installed via `pip install -e ".[dev]"`
@@ -32,9 +27,6 @@ setup(
     entry_points={
         'paste.app_factory': [
             'main = tutorial:main'
-        ],
-        'console_scripts': [
-            'initialize_tutorial_db = tutorial.initialize_db:main'
-        ],
+        ]
     }
 )

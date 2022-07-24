@@ -1,11 +1,6 @@
-deform
-psycopg2
 pyramid
 pyramid_chameleon
-pyramid_tm
-sqlalchemy
 waitress
-zope.sqlalchemy
 
 [dev]
 pyramid_debugtoolbar

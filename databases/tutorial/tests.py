@@ -1,119 +1,111 @@
 # import unittest
+# import transaction
 
 # from pyramid import testing
 
 
-# class TutorialViewTests(unittest.TestCase):
+# def _initTestingDB():
+#     from sqlalchemy import create_engine
+#     from .models import (
+#         DBSession,
+#         Page,
+#         Base
+#         )
+#     engine = create_engine('sqlite://')
+#     Base.metadata.create_all(engine)
+#     DBSession.configure(bind=engine)
+#     with transaction.manager:
+#         model = Page(title='FrontPage', body='This is the front page')
+#         DBSession.add(model)
+#     return DBSession
+
+
+# class WikiViewTests(unittest.TestCase):
 #     def setUp(self):
+#         self.session = _initTestingDB()
 #         self.config = testing.setUp()
 
 #     def tearDown(self):
+#         self.session.remove()
 #         testing.tearDown()
 
-#     def test_home(self):
-#         from .views import WikiViews
+#     def test_wiki_view(self):
+#         from tutorial.views import WikiViews
 
 #         request = testing.DummyRequest()
 #         inst = WikiViews(request)
 #         response = inst.wiki_view()
-#         self.assertEqual(len(response['pages']), 3)
+#         self.assertEqual(response['title'], 'Wiki View')
 
 
-# class TutorialFunctionalTests(unittest.TestCase):
+# class WikiFunctionalTests(unittest.TestCase):
 #     def setUp(self):
-#         from tutorial import main
-
-#         app = main({})
+#         from pyramid.paster import get_app
+#         app = get_app('development.ini')
 #         from webtest import TestApp
-
 #         self.testapp = TestApp(app)
 
 #     def tearDown(self):
-#         testing.tearDown()
+#         from .models import DBSession
+#         DBSession.remove()
 
-#     def test_home(self):
+#     def test_it(self):
 #         res = self.testapp.get('/', status=200)
-#         self.assertIn(b'<title>Wiki: View</title>', res.body)
-
-#     def test_add_page(self):
+#         self.assertIn(b'Wiki: View', res.body)
 #         res = self.testapp.get('/add', status=200)
-#         self.assertIn(b'<h1>Wiki</h1>', res.body)
+#         self.assertIn(b'Add/Edit', res.body)
 
-#     def test_edit_page(self):
-#         res = self.testapp.get('/101/edit', status=200)
-#         self.assertIn(b'<h1>Wiki</h1>', res.body)
-
-#     def test_post_wiki(self):
-#         self.testapp.post('/add', {
-#             "title": "New Title",
-#             "body": "<p>New Body</p>",
-#             "submit": "submit"
-#         }, status=302)
-
-#         res = self.testapp.get('/103', status=200)
-#         self.assertIn(b'<h1>New Title</h1>', res.body)
-#         self.assertIn(b'<p>New Body</p>', res.body)
-
-#     def test_edit_wiki(self):
-#         self.testapp.post('/102/edit', {
-#             "title": "New Title",
-#             "body": "<p>New Body</p>",
-#             "submit": "submit"
-#         }, status=302)
-
-#         res = self.testapp.get('/102', status=200)
-#         self.assertIn(b'<h1>New Title</h1>', res.body)
-#         self.assertIn(b'<p>New Body</p>', res.body)
+import unittest
+import transaction
 
 from pyramid import testing
 
 
-class TestTutorial():
-    def test_home(self):
-        from .views import WikiViews
+def _initTestingDB():
+    from sqlalchemy import create_engine
+    from .models import (
+        DBSession,
+        Page,
+        Base
+        )
+    engine = create_engine('sqlite://')
+    Base.metadata.create_all(engine)
+    DBSession.configure(bind=engine)
+    with transaction.manager:
+        model = Page(title='FrontPage', body='This is the front page')
+        DBSession.add(model)
+    return DBSession
+
+class WikiViewTests(unittest.TestCase):
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        self.session.remove()
+        testing.tearDown()
+
+    def test_wiki_view(self):
+        from tutorial.views import WikiViews
 
         request = testing.DummyRequest()
         inst = WikiViews(request)
         response = inst.wiki_view()
-        assert len(response['pages']) == 3
+        self.assertEqual(response['title'], 'Wiki View')
 
+class WikiFunctionalTests(unittest.TestCase):
+    def setUp(self):
+        from pyramid.paster import get_app
+        app = get_app('development.ini')
+        from webtest import TestApp
+        self.testapp = TestApp(app)
 
-class TestFunctional():
-    from tutorial import main
-    app = main({})
-    from webtest import TestApp
-    testapp = TestApp(app)
+    def tearDown(self):
+        from .models import DBSession
+        DBSession.remove()
 
-    def test_home(self):
+    def test_it(self):
         res = self.testapp.get('/', status=200)
-        assert b'<title>Wiki: View</title>' in res.body
-
-    def test_add_page(self):
+        self.assertIn(b'Wiki: View', res.body)
         res = self.testapp.get('/add', status=200)
-        assert b'<h1>Wiki</h1>' in res.body
-
-    def test_edit_page(self):
-        res = self.testapp.get('/101/edit', status=200)
-        assert b'<h1>Wiki</h1>' in res.body
-
-    def test_post_wiki(self):
-        self.testapp.post('/add', {
-            "title": "New Title",
-            "body": "<p>New Body</p>",
-            "submit": "submit"
-        }, status=302)
-
-        res = self.testapp.get('/103', status=200)
-        assert b'<h1>New Title</h1>' in res.body
-        assert b'<p>New Body</p>'in res.body
-
-    def test_edit_wiki(self):
-        self.testapp.post('/102/edit', {
-            "title": "New Title",
-            "body": "<p>New Body</p>",
-            "submit": "submit"
-        }, status=302)
-
-        res = self.testapp.get('/102', status=200)
-        assert b'<h1>New Title</h1>' in res.body
-        assert b'<p>New Body</p>' in res.body
+        self.assertIn(b'Add/Edit', res.body)

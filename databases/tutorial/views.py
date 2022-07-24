@@ -5,13 +5,10 @@ import deform
 
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
+
 from pyramid.request import Request
 
-pages = {
-    '100': dict(uid='100', title='Page 100', body='<em>100</em>'),
-    '101': dict(uid='101', title='Page 101', body='<em>101</em>'),
-    '102': dict(uid='102', title='Page 102', body='<em>102</em>')
-}
+from .models import DBSession, Page
 
 class WikiPage(colander.MappingSchema):
     title = colander.SchemaNode(colander.String())
@@ -22,7 +19,6 @@ class WikiPage(colander.MappingSchema):
 
 class WikiViews:
     def __init__(self, request):
-        print("sherlock request type", type(request))
         self.request : Request = request
 
     @property
@@ -36,7 +32,9 @@ class WikiViews:
 
     @view_config(route_name='wiki_view', renderer='wiki_view.pt')
     def wiki_view(self):
-        return dict(pages=pages.values())
+        pages = DBSession.query(Page).order_by(Page.title)
+        return dict(title='Wiki View', pages=pages)
+
 
     @view_config(route_name='wikipage_add',
                  renderer='wikipage_addedit.pt')
@@ -51,13 +49,15 @@ class WikiViews:
                 # Form is NOT valid
                 return dict(form=e.render())
 
-            # Form is valid, make a new identifier and add to list
-            last_uid = int(sorted(pages.keys())[-1])
-            new_uid = str(last_uid + 1)
-            pages[new_uid] = dict(
-                uid=new_uid, title=appstruct['title'],
-                body=appstruct['body']
-            )
+            # Add a new page to the database
+            new_title = appstruct['title']
+            new_body = appstruct['body']
+            DBSession.add(Page(title=new_title, body=new_body))
+
+            # Get the new ID and redirect
+            page = DBSession.query(Page).filter_by(title=new_title).one()
+            new_uid = page.uid
+
 
             # Now visit new page
             url = self.request.route_url('wikipage_view', uid=new_uid)
@@ -67,15 +67,15 @@ class WikiViews:
 
     @view_config(route_name='wikipage_view', renderer='wikipage_view.pt')
     def wikipage_view(self):
-        uid = self.request.matchdict['uid']
-        page = pages[uid]
+        uid = int(self.request.matchdict['uid'])
+        page = DBSession.query(Page).filter_by(uid=uid).one()
         return dict(page=page)
 
     @view_config(route_name='wikipage_edit',
                  renderer='wikipage_addedit.pt')
     def wikipage_edit(self):
-        uid = self.request.matchdict['uid']
-        page = pages[uid]
+        uid = int(self.request.matchdict['uid'])
+        page = DBSession.query(Page).filter_by(uid=uid).one()
 
         wiki_form = self.wiki_form
 
@@ -87,11 +87,9 @@ class WikiViews:
                 return dict(page=page, form=e.render())
 
             # Change the content and redirect to the view
-            page['title'] = appstruct['title']
-            page['body'] = appstruct['body']
-
-            url = self.request.route_url('wikipage_view',
-                                         uid=page['uid'])
+            page.title = appstruct['title']
+            page.body = appstruct['body']
+            url = self.request.route_url('wikipage_view', uid=uid)
             return HTTPFound(url)
 
         form = wiki_form.render(page)
