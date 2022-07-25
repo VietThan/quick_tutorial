@@ -6,8 +6,9 @@ from pyramid.security import (
 
 from pyramid.view import (
     view_config,
-    view_defaults
-    )
+    view_defaults,
+    forbidden_view_config
+)
 
 from .security import (
     USERS,

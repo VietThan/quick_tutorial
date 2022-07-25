@@ -4,7 +4,10 @@ from .security import SecurityPolicy
 
 
 def main(global_config, **settings):
-    config = Configurator(settings=settings)
+    config = Configurator(
+        settings=settings,
+        root_factory='.resources.Root'
+    )
     config.include('pyramid_chameleon')
 
     config.set_security_policy(
