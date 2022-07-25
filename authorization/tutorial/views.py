@@ -40,7 +40,6 @@ class TutorialViews:
             referrer = '/'  # never use login form itself as came_from
 
         came_from = request.params.get('came_from', referrer)
-
         message = ''
         login = ''
         password = ''
